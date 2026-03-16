@@ -110,93 +110,90 @@ h1 {
   margin-bottom: 10px;
 }
 
-/* --- Option Cards (horizontal toggle cards) --- */
+/* --- Option List (toggle rows) --- */
 
-.option-cards {
-  display: flex;
-  gap: 8px;
-}
-
-.option-card {
-  flex: 1;
+.option-list {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  padding: 12px 8px;
   background: #1a1d23;
-  border: 1.5px solid #23272e;
+  border: 1px solid #23272e;
   border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  text-align: center;
+  overflow: hidden;
 }
 
-.option-card:hover {
-  border-color: #3b3f47;
+.option-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.option-row:not(:last-child) {
+  border-bottom: 1px solid #23272e;
+}
+
+.option-row:hover {
   background: #1f2329;
 }
 
-.option-card:has(input:checked) {
-  border-color: #6366f1;
-  background: #1e1b4b;
-}
-
-.option-card:has(input:disabled) {
+.option-row:has(input:disabled) {
   opacity: 0.4;
   cursor: not-allowed;
 }
 
-.option-card input[type="checkbox"] {
+.option-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.option-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #eaecef;
+  margin-bottom: 2px;
+}
+
+.option-desc {
+  font-size: 11px;
+  color: #6b7280;
+  line-height: 1.3;
+}
+
+.option-row input[type="checkbox"] {
   display: none;
 }
 
-.option-card-icon {
-  font-size: 16px;
-  font-weight: 700;
-  color: #6b7280;
-  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
-  transition: color 0.15s ease;
-}
-
-.option-card:has(input:checked) .option-card-icon {
-  color: #a5b4fc;
-}
-
-.option-card-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: #9ca3af;
-  transition: color 0.15s ease;
-}
-
-.option-card:has(input:checked) .option-card-label {
-  color: #c7d2fe;
-}
-
-/* --- Estimate Box --- */
-
-.estimate-box {
-  background: #1a1d23;
-  border: 1px solid #23272e;
+.toggle {
+  width: 36px;
+  height: 20px;
+  background: #3b3f47;
   border-radius: 10px;
-  padding: 12px;
-  margin-bottom: 12px;
-  font-size: 12px;
-  line-height: 1.7;
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.2s ease;
 }
 
-.estimate-title {
-  font-size: 11px;
-  font-weight: 700;
-  color: #a5b4fc;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 6px;
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  background: #6b7280;
+  border-radius: 50%;
+  transition: all 0.2s ease;
 }
 
-.estimate-box strong {
-  color: #eaecef;
+.option-row input:checked + .toggle {
+  background: #6366f1;
+}
+
+.option-row input:checked + .toggle::after {
+  left: 19px;
+  background: #fff;
 }
 
 /* --- Progress --- */
@@ -259,18 +256,6 @@ h1 {
 
 .btn-accent:hover:not(:disabled) {
   background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
-}
-
-.btn-outline {
-  background: transparent;
-  color: #9ca3af;
-  border: 1.5px solid #23272e;
-}
-
-.btn-outline:hover:not(:disabled) {
-  border-color: #3b3f47;
-  color: #c9ccd1;
-  background: #1a1d23;
 }
 
 .btn-stop {

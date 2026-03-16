@@ -4,7 +4,6 @@ let isExtracting = false;
 
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('startBtn').addEventListener('click', startExtraction);
-  document.getElementById('estimateBtn').addEventListener('click', estimateExtraction);
   document.getElementById('stopBtn').addEventListener('click', stopExtraction);
 
   checkSlackPage();
@@ -27,7 +26,6 @@ async function checkSlackPage() {
   if (!tab.url || !tab.url.includes('slack.com')) {
     showStatus('warning', 'Please open this extension on a Slack page');
     document.getElementById('startBtn').disabled = true;
-    document.getElementById('estimateBtn').disabled = true;
   }
 }
 
@@ -64,33 +62,6 @@ async function startExtraction() {
   });
 }
 
-async function estimateExtraction() {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  if (!tab.url || !tab.url.includes('slack.com')) {
-    showStatus('error', 'This extension only works on Slack');
-    return;
-  }
-
-  const options = getExportOptions();
-  document.getElementById('estimate').style.display = 'none';
-  showStatus('info', 'Analyzing conversation...');
-  document.getElementById('estimateBtn').disabled = true;
-
-  chrome.tabs.sendMessage(tab.id, {
-    action: 'estimateExtraction',
-    options
-  }, (response) => {
-    if (chrome.runtime.lastError) {
-      showStatus('error', 'Error: ' + chrome.runtime.lastError.message);
-      document.getElementById('estimateBtn').disabled = false;
-      return;
-    }
-    if (response && response.success) {
-      showStatus('info', response.message);
-    }
-  });
-}
-
 async function stopExtraction() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   chrome.tabs.sendMessage(tab.id, { action: 'stopExtraction' });
@@ -113,17 +84,14 @@ function getExportOptions() {
 function updateUI() {
   const startBtn = document.getElementById('startBtn');
   const stopBtn = document.getElementById('stopBtn');
-  const estimateBtn = document.getElementById('estimateBtn');
   const checkboxes = document.querySelectorAll('input[type="checkbox"]');
 
   if (isExtracting) {
     startBtn.style.display = 'none';
-    estimateBtn.style.display = 'none';
     stopBtn.style.display = 'flex';
     checkboxes.forEach(cb => cb.disabled = true);
   } else {
     startBtn.style.display = 'flex';
-    estimateBtn.style.display = 'flex';
     stopBtn.style.display = 'none';
     checkboxes.forEach(cb => cb.disabled = false);
   }
@@ -163,40 +131,6 @@ chrome.runtime.onMessage.addListener((message) => {
     showStatus('error', 'Error: ' + message.error);
   } else if (message.action === 'updateCount') {
     document.getElementById('messageCount').textContent = `${message.count} messages`;
-  } else if (message.action === 'estimateComplete') {
-    document.getElementById('estimateBtn').disabled = false;
-    document.getElementById('status').style.display = 'none';
-
-    const data = message.data;
-    const approx = data.isApproximate ? ' (approx.)' : '';
-    const downloadMedia = document.getElementById('downloadMedia').checked;
-    const exportJson = document.getElementById('exportJson').checked;
-    const exportHtml = document.getElementById('exportHtml').checked;
-
-    let mediaLine = '';
-    if (data.mediaCount > 0) {
-      if (downloadMedia) {
-        mediaLine = `<div style="margin-bottom: 4px; color: #86efac;"><strong>${data.mediaCount}${approx}</strong> media file(s) included</div>`;
-      } else {
-        mediaLine = `<div style="margin-bottom: 4px; color: #6b7280;"><strong>${data.mediaCount}${approx}</strong> media file(s) skipped</div>`;
-      }
-    }
-
-    const formats = [];
-    if (exportJson) formats.push('JSON');
-    if (exportHtml) formats.push('HTML');
-
-    const estimateEl = document.getElementById('estimate');
-    document.getElementById('estimateDetails').innerHTML = `
-      <div style="margin-bottom: 4px;"><strong>${data.messageCount}${approx}</strong> messages</div>
-      ${mediaLine}
-      <div style="margin-bottom: 4px;">Format: <strong>${formats.join(' + ') || 'None'}</strong></div>
-      <div>Estimated time: <strong>${data.estimatedTime}</strong></div>
-    `;
-    estimateEl.style.display = 'block';
-  } else if (message.action === 'estimateError') {
-    document.getElementById('estimateBtn').disabled = false;
-    showStatus('error', 'Estimation error: ' + message.error);
   }
 });
 
@@ -210,9 +144,6 @@ chrome.storage.onChanged.addListener((changes) => {
         updateUI();
       }
       showProgress(state.progress || 'Export in progress...');
-    } else if (!state) {
-      // Extraction finished (state was removed)
-      // The exportComplete/exportError message handles UI update
     }
   }
 });
