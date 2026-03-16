@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slack Export</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="topbar-icon">S</div>
+      <div class="topbar-text">
+        <h1>Slack Export</h1>
+        <span class="topbar-badge" id="messageCount">0 messages</span>
+      </div>
+    </div>
+
+    <div id="status" class="status"></div>
+
+    <div class="section">
+      <div class="section-title">Export Options</div>
+      <div class="option-cards">
+        <label class="option-card">
+          <input type="checkbox" id="exportJson" checked>
+          <div class="option-card-icon">{ }</div>
+          <div class="option-card-label">JSON</div>
+        </label>
+        <label class="option-card">
+          <input type="checkbox" id="exportHtml" checked>
+          <div class="option-card-icon">&lt;/&gt;</div>
+          <div class="option-card-label">HTML</div>
+        </label>
+        <label class="option-card">
+          <input type="checkbox" id="downloadMedia" checked>
+          <div class="option-card-icon">&#9881;</div>
+          <div class="option-card-label">Media</div>
+        </label>
+      </div>
+    </div>
+
+    <div id="estimate" class="estimate-box" style="display: none;">
+      <div class="estimate-title">Estimate</div>
+      <div id="estimateDetails"></div>
+    </div>
+
+    <div id="progress" class="progress-section" style="display: none;">
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" id="progressBar"></div>
+      </div>
+      <div class="progress-text" id="progressText">Initializing...</div>
+    </div>
+
+    <div class="actions">
+      <button id="estimateBtn" class="btn btn-outline">Estimate</button>
+      <button id="startBtn" class="btn btn-accent">Export</button>
+      <button id="stopBtn" class="btn btn-stop" style="display: none;">Stop</button>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
