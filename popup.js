@@ -6,9 +6,27 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('startBtn').addEventListener('click', startExtraction);
   document.getElementById('stopBtn').addEventListener('click', stopExtraction);
 
+  setupDateRangeControls();
   checkSlackPage();
   restoreState();
 });
+
+function setupDateRangeControls() {
+  const rangeAll = document.getElementById('rangeAll');
+  const rangeCustom = document.getElementById('rangeCustom');
+  const dateInputs = document.getElementById('dateInputs');
+
+  const toggle = () => {
+    dateInputs.style.display = rangeCustom.checked ? 'flex' : 'none';
+  };
+
+  rangeAll.addEventListener('change', toggle);
+  rangeCustom.addEventListener('change', toggle);
+
+  // Set default "To" date to today
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('dateTo').value = today;
+}
 
 // Restore extraction state if popup was closed and reopened mid-extraction
 async function restoreState() {
@@ -36,16 +54,30 @@ async function startExtraction() {
     return;
   }
 
+  const options = getExportOptions();
+
+  if (options.dateRange === 'custom') {
+    const fromVal = document.getElementById('dateFrom').value;
+    const toVal = document.getElementById('dateTo').value;
+    if (!fromVal && !toVal) {
+      showStatus('error', 'Please select at least one date for the custom range');
+      return;
+    }
+    if (fromVal && toVal && new Date(fromVal) > new Date(toVal)) {
+      showStatus('error', '"From" date must be before "To" date');
+      return;
+    }
+  }
+
   isExtracting = true;
   updateUI();
 
-  const options = getExportOptions();
   await chrome.storage.local.set({ exportOptions: options });
 
   showStatus('info', 'Extraction started...');
   showProgress('Initializing...');
 
-  chrome.tabs.sendMessage(tab.id, { action: 'startExtraction' }, (response) => {
+  chrome.tabs.sendMessage(tab.id, { action: 'startExtraction', options }, (response) => {
     if (chrome.runtime.lastError) {
       showStatus('error', 'Error: ' + chrome.runtime.lastError.message);
       isExtracting = false;
@@ -74,26 +106,46 @@ async function stopExtraction() {
 }
 
 function getExportOptions() {
-  return {
+  const isCustomRange = document.getElementById('rangeCustom').checked;
+  const options = {
     exportJson: document.getElementById('exportJson').checked,
     exportHtml: document.getElementById('exportHtml').checked,
-    downloadMedia: document.getElementById('downloadMedia').checked
+    downloadMedia: document.getElementById('downloadMedia').checked,
+    dateRange: 'all'
   };
+
+  if (isCustomRange) {
+    const fromVal = document.getElementById('dateFrom').value;
+    const toVal = document.getElementById('dateTo').value;
+    options.dateRange = 'custom';
+    // Convert date strings to Unix timestamps (seconds) for the Slack API
+    if (fromVal) {
+      options.oldest = new Date(fromVal).getTime() / 1000;
+    }
+    if (toVal) {
+      // End of the selected day (23:59:59.999)
+      const toDate = new Date(toVal);
+      toDate.setHours(23, 59, 59, 999);
+      options.latest = toDate.getTime() / 1000;
+    }
+  }
+
+  return options;
 }
 
 function updateUI() {
   const startBtn = document.getElementById('startBtn');
   const stopBtn = document.getElementById('stopBtn');
-  const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+  const allInputs = document.querySelectorAll('input[type="checkbox"], input[type="radio"], input[type="date"]');
 
   if (isExtracting) {
     startBtn.style.display = 'none';
     stopBtn.style.display = 'flex';
-    checkboxes.forEach(cb => cb.disabled = true);
+    allInputs.forEach(el => el.disabled = true);
   } else {
     startBtn.style.display = 'flex';
     stopBtn.style.display = 'none';
-    checkboxes.forEach(cb => cb.disabled = false);
+    allInputs.forEach(el => el.disabled = false);
   }
 }
 

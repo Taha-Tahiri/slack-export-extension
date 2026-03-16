@@ -19,6 +19,38 @@
     <div id="status" class="status"></div>
 
     <div class="section">
+      <div class="section-title">Date Range</div>
+      <div class="option-list">
+        <label class="option-row radio-row">
+          <input type="radio" name="dateRange" value="all" id="rangeAll" checked>
+          <span class="radio-dot"></span>
+          <div class="option-info">
+            <div class="option-name">All messages</div>
+            <div class="option-desc">Export the entire conversation history</div>
+          </div>
+        </label>
+        <label class="option-row radio-row">
+          <input type="radio" name="dateRange" value="custom" id="rangeCustom">
+          <span class="radio-dot"></span>
+          <div class="option-info">
+            <div class="option-name">Custom range</div>
+            <div class="option-desc">Only export messages within a date range</div>
+          </div>
+        </label>
+      </div>
+      <div id="dateInputs" class="date-inputs" style="display: none;">
+        <div class="date-field">
+          <label for="dateFrom">From</label>
+          <input type="date" id="dateFrom">
+        </div>
+        <div class="date-field">
+          <label for="dateTo">To</label>
+          <input type="date" id="dateTo">
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
       <div class="section-title">Include in export</div>
       <div class="option-list">
         <label class="option-row">

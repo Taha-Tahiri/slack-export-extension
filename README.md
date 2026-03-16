@@ -12,7 +12,6 @@ A Chrome extension that exports Slack conversations — channels, DMs, and group
 - **Slack-accurate HTML** — dark theme export that mirrors Slack's native UI with search functionality
 - **Smart pagination** — handles conversations of any size with cursor-based fetching
 - **Progress tracking** — real-time progress that persists even if you switch tabs
-- **Estimation** — preview message and media counts before starting an export
 - **One-click export** — just open a Slack conversation and click Export
 
 ---
@@ -35,8 +34,7 @@ A Chrome extension that exports Slack conversations — channels, DMs, and group
    - **JSON** — structured data with all message metadata
    - **HTML** — styled, searchable conversation view
    - **Media** — download images and files locally
-4. *(Optional)* Click **Estimate** to preview the export size
-5. Click **Export** to start
+4. Click **Export** to start
 
 Exports are saved to your Downloads folder as `{conversation-name}_{timestamp}/`.
 

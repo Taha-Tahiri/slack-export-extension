@@ -8,7 +8,7 @@ let abortController = null;
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'startExtraction') {
-    startExtraction(sendResponse);
+    startExtraction(sendResponse, request.options);
     return true; // async response
   } else if (request.action === 'stopExtraction') {
     stopExtraction();
@@ -24,7 +24,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 // --- Extraction Entry Point ---
 
-async function startExtraction(sendResponse) {
+async function startExtraction(sendResponse, options = {}) {
   if (isExtracting) {
     sendResponse({ success: false, error: 'Extraction already in progress' });
     return;
@@ -47,13 +47,17 @@ async function startExtraction(sendResponse) {
     const conversationType = detectConversationType();
     const conversationName = getConversationName();
 
+    const rangeLabel = options.dateRange === 'custom'
+      ? ` (custom date range)`
+      : ' (all messages)';
+
     sendResponse({
       success: true,
-      message: `Starting extraction of ${conversationType}: ${conversationName}`
+      message: `Starting extraction of ${conversationType}: ${conversationName}${rangeLabel}`
     });
 
-    // Fetch all messages with pagination
-    const result = await fetchAllMessages(credentials);
+    // Fetch all messages with pagination, applying date range filter
+    const result = await fetchAllMessages(credentials, options);
     const messages = result.messages;
     const userMap = result.userMap;
 
@@ -288,7 +292,7 @@ function extractTokenFromPage() {
 
 // --- Message Fetching ---
 
-async function fetchAllMessages(credentials) {
+async function fetchAllMessages(credentials, options = {}) {
   const allMessages = [];
   const seenTimestamps = new Set();
   let hasMore = true;
@@ -309,6 +313,12 @@ async function fetchAllMessages(credentials) {
     formData.append('channel', credentials.channel);
     formData.append('limit', '200');
     if (cursor) formData.append('cursor', cursor);
+
+    // Apply date range filters via Slack API params
+    if (options.oldest && !cursor) formData.append('oldest', String(options.oldest));
+    if (options.latest && !cursor) formData.append('latest', String(options.latest));
+    // inclusive: include messages at the exact boundary timestamp
+    if ((options.oldest || options.latest) && !cursor) formData.append('inclusive', 'true');
 
     reportProgress(`Fetching via API... (page ${pageCount}, ${allMessages.length} messages)`);
 
